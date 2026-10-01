@@ -213,6 +213,5 @@ with col_tablero:
         height=canvas_height,
         width=canvas_width,
         drawing_mode=drawing_mode,
-        display_toolbar=False,
         key=f"canvas_{canvas_width}_{canvas_height}_{st.session_state.intento}",
     )
