@@ -52,9 +52,11 @@ st.markdown(
     .casi     { background: #FFF1C1; color: #9A5B00; box-shadow: 6px 6px 0 #FFB703; }
     .otra_vez { background: #FFE0EC; color: #B0175F; box-shadow: 6px 6px 0 #F15BB5; }
 
-    iframe[title="streamlit_drawable_canvas.st_canvas"] {
-        border: 8px dashed #00BBF9 !important; border-radius: 28px;
+    /* Marco de crayón alrededor del tablero */
+    div[class*="st-key-canvas_"] {
+        border: 8px dashed #00BBF9; border-radius: 28px;
         box-shadow: 8px 8px 0 #9B5DE5; background: #fff;
+        padding: 10px; width: fit-content; max-width: 100%;
     }
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #CDB4DB 0%, #FFC8DD 50%, #BDE0FE 100%);
@@ -128,7 +130,10 @@ def reconocer(image_data, bg_color):
     if image_data is None:
         return None, 0.0
     img = np.asarray(image_data).astype(float)
-    rgb, alpha = img[:, :, :3], img[:, :, 3]
+    if img.ndim == 2:  # imagen en gris
+        img = np.stack([img, img, img], axis=2)
+    rgb = img[:, :, :3]
+    alpha = img[:, :, 3] if img.shape[2] == 4 else np.full(rgb.shape[:2], 255.0)
     # Un píxel es "dibujo" si no es transparente y no es del color del fondo
     distancia = np.linalg.norm(rgb - hex_a_rgb(bg_color), axis=2)
     trazo = (alpha > 0) & (distancia > 60)
@@ -163,7 +168,7 @@ FONDOS = {
 }
 HERRAMIENTAS = {
     "✏️ Lápiz mágico": "freedraw", "📏 Línea": "line", "🟦 Cuadrado": "rect",
-    "🟣 Círculo": "circle", "✋ Mover": "transform",
+    "🟣 Círculo": "circle",
 }
 
 with st.sidebar:
@@ -209,6 +214,7 @@ with col_tablero:
         height=canvas_height,
         width=canvas_width,
         drawing_mode=drawing_mode,
+        return_image_data=True,
         key=f"canvas_{canvas_width}_{canvas_height}_{st.session_state.intento}",
     )
 
